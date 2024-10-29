@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BiblioDb</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; }
+        th { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+    <h1>BiblioDb</h1>
+    
+    <h2>Libros</h2>
+    <table id="books-table">
+        <thead>
+            <tr>
+                <th>Título</th>
+                <th>Autor</th>
+                <th>Año</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Préstamos</h2>
+    <table id="loans-table">
+        <thead>
+            <tr>
+                <th>ID de Usuario</th>
+                <th>ID de Libro</th>
+                <th>Fecha de Préstamo</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <h2>Usuarios</h2>
+    <table id="users-table">
+        <thead>
+            <tr>
+                <th>Nombre</th>
+                <th>Email</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        const APP_ID = "670c34c032435140b3ad0270"; // Tu App ID
+        const API_KEY = "uzhlhwnc"; // Tu clave API pública
+        const BASE_URL = `https://data.mongodb-api.com/app/${APP_ID}/endpoint/data/beta/action/find`;
+
+        async function fetchData(collection, tableId) {
+            try {
+                const response = await fetch(BASE_URL, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "api-key": API_KEY
+                    },
+                    body: JSON.stringify({
+                        dataSource: "Cluster0",
+                        database: "BiblioDb",
+                        collection: collection,
+                        filter: {}
+                    })
+                });
+
+                const data = await response.json();
+                const tableBody = document.getElementById(tableId).querySelector('tbody');
+                tableBody.innerHTML = ''; // Limpiar el contenido anterior
+
+                data.documents.forEach(item => {
+                    const row = document.createElement('tr');
+                    if (collection === "Books") {
+                        row.innerHTML = `<td>${item.title}</td><td>${item.author}</td><td>${item.year}</td>`;
+                    } else if (collection === "Loans") {
+                        row.innerHTML = `<td>${item.userId}</td><td>${item.bookId}</td><td>${item.loanDate}</td>`;
+                    } else if (collection === "User") {
+                        row.innerHTML = `<td>${item.name}</td><td>${item.email}</td>`;
+                    }
+                    tableBody.appendChild(row);
+                });
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        }
+
+        // Obtener datos de cada colección
+        fetchData('Books', 'books-table');
+        fetchData('Loans', 'loans-table');
+        fetchData('User', 'users-table');
+    </script>
+</body>
+</html>
